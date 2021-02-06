@@ -67,3 +67,6 @@ class Date:
 
     def __iadd__(self, other: TimeDelta) -> "Date":
         """Добавляет к self некий timedelta меняя сам self (+=)"""
+
+
+print("trial")
