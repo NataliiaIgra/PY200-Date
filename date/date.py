@@ -2,12 +2,11 @@ from typing import Optional, overload
 
 
 class TimeDelta:
-    @overload
-    def __init__(self, days: Optional[int] = None, months: Optional[int] = None, years: Optional[int] = None):
-        """Создание некой timedelta. Для каждой из позиции можно использовать число или None"""
+    """Вспомогательный класс, в котором хранится информация о количестве дней, месяцев или лет,
+     которое нужно добавить к дате или вычесть из даты"""
 
     def __init__(self, days: Optional[int] = None, months: Optional[int] = None, years: Optional[int] = None):
-        """ !!! """
+        """Создание некой timedelta. Для каждой из позиции можно использовать число или None"""
         self.days = days
         self.months = months
         self.years = years
@@ -18,11 +17,12 @@ class TimeDelta:
 
     @days.setter
     def days(self, days_value: int or None):
-        """ !!! """
         if days_value is None:
             self._days = days_value
         elif not isinstance(days_value, int):
-            raise TypeError('You can input only a positive integer for a "days" value.')  # ??? Под вопросом
+            raise TypeError('You can input only an integer for a "days" value.')
+        elif days_value < 0:
+            raise NotImplementedError('Addition of a negative "days" value is not implemented yet.')
         self._days = days_value
 
     @property
@@ -34,7 +34,9 @@ class TimeDelta:
         if months_value is None:
             self._months = months_value
         elif not isinstance(months_value, int):
-            raise TypeError('You can input only a positive integer for a "months" value.')  # ??? Под вопросом
+            raise TypeError('You can input only an integer for a "months" value.')
+        elif months_value < 0:
+            raise NotImplementedError('Addition of a negative "months" value is not implemented yet.')
         self._months = months_value
 
     @property
@@ -46,15 +48,17 @@ class TimeDelta:
         if years_value is None:
             self._years = years_value
         elif not isinstance(years_value, int):
-            raise TypeError('You can input only a positive integer for a "years" value.')  # ??? Под вопросом
+            raise TypeError('You can input only an integer for a "years" value.')
+        elif years_value < 0:
+            raise NotImplementedError('Addition of a negative "years" value is not implemented yet.')
         self._years = years_value
 
     def __str__(self) -> str:
-        """ !!! """
+        """Возвращает timedelta в формате days.months.years"""
         return f'{self.days}.{self.months}.{self.years}'
 
     def __repr__(self) -> str:
-        """ !!! """
+        """Возвращает timedelta в формате TimeDelta(days, months, years)"""
         return f'TimeDelta({self.days}, {self.months}, {self.years})'
 
 
@@ -75,7 +79,7 @@ class Date:
         if len(args) == 3 and all(isinstance(i, int) for i in args):
             check = self.is_valid_date(args[0], args[1], args[2])  # check for incorrect values
             if check:
-                self._day, self._month, self._year = args[0], args[1], args[2]
+                self._day, self._month, self._year = args
             else:
                 raise ValueError(f'{args[0]:02d}.{args[1]:02d}.{args[2]:04d} is not a valid date.')
 
@@ -84,7 +88,7 @@ class Date:
             if len(to_split) != 3:
                 raise ValueError('Incorrect string format. Right format: dd.mm.yyyy')
             else:
-                check = self.is_valid_date(to_split[0], to_split[1], to_split[2])
+                check = self.is_valid_date(int(to_split[0]), int(to_split[1]), int(to_split[2]))
                 if check:
                     self._day, self._month, self._year, = int(to_split[0]), int(to_split[1]), int(to_split[2])
                 else:
@@ -116,7 +120,7 @@ class Date:
 
     # Private method. For internal use only ;)
     def __how_many_leaps(self, first_year: int, second_year: int) -> int:
-        """ !!! """
+        """This function returns a number of leap years between two given years"""
         leaps = 0
         current_year = first_year
         if first_year > second_year:
@@ -221,29 +225,42 @@ class Date:
 
     # Private method. For internal use only ;)
     def __special_for_add_and_iadd(self, some_timedelta: TimeDelta):
-        """ !!! """
+        """This function contains the required logic for the __add__ and __iadd__ functions"""
         current_day = self.day
         current_month = self.month
         current_year = self.year
-        result_year = current_year + some_timedelta.years
-        months_to_add = some_timedelta.months
 
-        while current_month + months_to_add > 12:
-            result_year += 1
-            months_to_add -= (12 - current_month)
-            current_month = 0
-        result_month = months_to_add
+        years_to_add = some_timedelta.years
+        if years_to_add is None:
+            result_year = current_year
+        else:
+            result_year = current_year + years_to_add
+
+        months_to_add = some_timedelta.months
+        if months_to_add is None:
+            result_month = current_month
+        else:
+            while current_month + months_to_add > 12:
+                result_year += 1
+                months_to_add -= 12
+            result_month = current_month + months_to_add
 
         days_to_add = some_timedelta.days
         days_number = current_day
-        while days_number + days_to_add > self.get_max_day(result_month, result_year):
-            days_to_add -= (self.get_max_day(result_month, result_year) - days_number)
-            days_number = 0
-            result_month += 1
-            if result_month == 13:
-                result_year += 1
-                result_month = 1
-        result_day = days_number + days_to_add
+        if days_to_add is None:
+            result_day = days_number
+            check = self.get_max_day(result_month, result_year)
+            if result_day > check:
+                result_day = self.get_max_day(result_month, result_year)
+        else:
+            while days_number + days_to_add > self.get_max_day(result_month, result_year):
+                days_to_add -= (self.get_max_day(result_month, result_year) - days_number)
+                days_number = 0
+                result_month += 1
+                if result_month == 13:
+                    result_year += 1
+                    result_month = 1
+            result_day = days_number + days_to_add
 
         return result_day, result_month, result_year
 
@@ -259,18 +276,5 @@ class Date:
         if not isinstance(other, TimeDelta):
             raise TypeError('Second parameter should be of class "TimeDelta".')
         result = self.__special_for_add_and_iadd(other)
-        self._day = result[0]
-        self._month = result[1]
-        self._year = result[2]
+        self._day, self._month, self._year = result
         return self
-
-
-def main():
-    my_date1 = Date(29, 2, 2004)
-    my_timedelta = TimeDelta(95, 8, 5)
-    my_date1 += my_timedelta
-    print(my_date1)
-
-
-if __name__ == '__main__':
-    main()

@@ -1,0 +1,7 @@
+os: windows
+language: python
+python: "3.9"
+install:
+  - pip install .[tests]
+script:
+  - PYTHONPATH=. pytest --cov-report term-missing date tests
