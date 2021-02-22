@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
 __pckg__ = "date"
+__dpckg__ = __pckg__.replace("-", "_")
 __version__ = "0.0.1"
 
 setup(
