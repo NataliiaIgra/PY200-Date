@@ -13,5 +13,10 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[],
-    extra_require={
-        "tests": ["pytest==6.2.2", "pytest-cov==2.11.1"]})
+    extras_require={
+        "tests": [
+            "pytest==6.2.2",
+            "pytest-cov==2.11.1",
+        ],
+    },
+)
