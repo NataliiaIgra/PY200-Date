@@ -4,4 +4,4 @@ python: "3.9.0"
 install:
   - pip install .[tests]
 script:
-  - PYTHONPATH=. pytest --cov-report term-missing date tests
+  - pytest --cov /home/travis/build/NataliiaIgra/PY200-Date/date --cov-report term-missing /home/travis/build/NataliiaIgra/PY200-Date/tests/tests.py
